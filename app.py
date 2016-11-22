@@ -3,7 +3,8 @@ from collections import defaultdict
 import hashlib
 from pymongo import MongoClient
 
-cards =[]
+client = MongoClient()
+db = client['all_cards']
 
 #assume json comes from https://mtgjson.com/json/AllSetsArray-x.json
 #documentation from https://mtgjson.com/documentation.html
@@ -42,12 +43,8 @@ with open('AllSetsArray-x.json', 'rb') as json_data:
 
 			sha_1 = hashlib.sha1()
     		sha_1.update(card['name'].encode('utf-8') + card['set'].encode('utf-8') + card['number'].encode('utf-8'))
-    		card['id'] = sha_1.hexdigest()
-    		cards.append(card)
+    		card['_id'] = sha_1.hexdigest()
+    		
+    		db.cards.update({'_id':card['_id']}, card, upsert= True)
 
 	json_data.close()
-
-client = MongoClient()
-db = client['all_cards']
-
-result = db.cards.insert(cards)
